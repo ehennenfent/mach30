@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mach30"
+version = "0.0.1"
+description = "A Gcode Library"
+readme = "README.md"
+requires-python = ">=3.12"
+license = {file = "LICENSE"}
+
+authors = [
+  {name = "Eric Hennenfent", email = "eric@hennenfent.com" }
+]
+
+dependencies = [
+  "pydantic"
+]
+
+[project.optional-dependencies]
+dev = [
+    "black",
+    "isort",
+    "mypy",
+    "pytest",
+    "ruff",
+    ]
+
+[tool.black]
+line-length = 120
+
+[tool.ruff]
+line-length = 120
+
+[tool.isort]
+profile = "black"
