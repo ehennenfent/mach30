@@ -1,7 +1,7 @@
-from .models import Code, ModalCode, CodeType
-
 import typing as t
 from typing import SupportsFloat as maybe_float
+
+from .models import Code, CodeType, GGroups, ModalCode
 
 
 def _six_axes_to_codes(
@@ -46,6 +46,7 @@ class GCode(Code):
 
 class RapidMove(ModalCode):
     enter_code: Code = Code(code_type="G", code_number=0)
+    group: GGroups = GGroups.MOTION
 
     def move(
         self,
@@ -63,6 +64,7 @@ class RapidMove(ModalCode):
 
 class LinearMove(ModalCode):
     enter_code: Code = Code(code_type="G", code_number=1)
+    group: GGroups = GGroups.MOTION
 
     def __init__(self, feedrate: maybe_float, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -83,6 +85,7 @@ class LinearMove(ModalCode):
 
 
 class CannedCycle(ModalCode):
+    group: GGroups = GGroups.CANNED_CYCLE
     exit_code: Code = Code(code_type="G", code_number=80)
 
     def move(
@@ -100,6 +103,7 @@ class CannedCycle(ModalCode):
 
 
 class DrillCycle(CannedCycle):
+    group: GGroups = GGroups.CANNED_CYCLE
     enter_code: Code = Code(code_type="G", code_number=81)
 
     def __init__(self, f: maybe_float, *args, **kwargs):

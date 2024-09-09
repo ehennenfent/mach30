@@ -1,9 +1,9 @@
 from mach30 import ProgramBuilder
-from mach30.gcode import RapidMove, LinearMove
+from mach30.gcode import LinearMove, RapidMove
 
 
 def test_rapid():
-    builder = ProgramBuilder()
+    builder = ProgramBuilder(number=1)
     with RapidMove(builder=builder) as rapid:
         rapid.move(z=1.0)
         rapid.move(x=1.0, y=2.0)
@@ -12,7 +12,7 @@ def test_rapid():
 
 
 def test_linear():
-    builder = ProgramBuilder()
+    builder = ProgramBuilder(number=1)
     with LinearMove(builder=builder, feedrate=1250) as linear:
         linear.move(z=1.0)
         linear.move(x=1.0, y=2.0)
