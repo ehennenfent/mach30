@@ -56,7 +56,7 @@ class RapidMove(ModalCode):
         a: maybe_float | None = None,
         b: maybe_float | None = None,
         c: maybe_float | None = None,
-    ):
+    ) -> None:
         codes = _six_axes_to_codes(x, y, z, a, b, c)
         if maybe_code := combine_motion_codes(codes):
             self.builder.add(maybe_code)
@@ -78,7 +78,7 @@ class LinearMove(ModalCode):
         a: maybe_float | None = None,
         b: maybe_float | None = None,
         c: maybe_float | None = None,
-    ):
+    ) -> None:
         codes = _six_axes_to_codes(x, y, z, a, b, c)
         if maybe_code := combine_motion_codes(codes):
             self.builder.add(maybe_code)
@@ -96,7 +96,7 @@ class CannedCycle(ModalCode):
         a: maybe_float | None = None,
         b: maybe_float | None = None,
         c: maybe_float | None = None,
-    ):
+    ) -> None:
         codes = _six_axes_to_codes(x, y, z, a, b, c)
         if maybe_code := combine_motion_codes(codes):
             self.builder.add(maybe_code)

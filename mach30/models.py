@@ -82,14 +82,14 @@ class ProgramBuilder(BaseModel):
 
     modal_stacks: t.Dict[GGroups, t.List["ModalCode"]] = {}
 
-    def add(self, *codes: Code):
+    def add(self, *codes: Code) -> None:
         for code in codes:
             self.codes.append(code)
 
     def render(self) -> str:
         return "\n".join(code.render() for code in self.codes)
 
-    def enter(self, code: "ModalCode"):
+    def enter(self, code: "ModalCode") -> None:
         """Add the current entry code to the modal stack"""
         self.modal_stacks.setdefault(code.group, []).append(code)
 
@@ -99,7 +99,7 @@ class ProgramBuilder(BaseModel):
             raise RuntimeError(f"No modal ops for group {group} left on stack!")
         return stack.pop()
 
-    def resume(self, group: GGroups):
+    def resume(self, group: GGroups) -> None:
         """replay the last modal entry code on the stack, if present"""
         if stack := self.modal_stacks.get(group, []):
             self.add(stack[-1].enter_code)
