@@ -3,7 +3,7 @@ from enum import Enum
 
 from pydantic import BaseModel
 
-CodeType = t.Literal["G", "M", "T", "R", "F", "S", "X", "Y", "Z", "A", "B", "C"]
+CodeType = t.Literal["G", "M", "T", "R", "F", "S", "H", "D", "X", "Y", "Z", "A", "B", "C"]
 
 
 class MotionPlane(Enum):
@@ -36,18 +36,29 @@ class WorkOffset(Enum):
     SIX = 59
 
 
+class CutterCompensationDirection(Enum):
+    LEFT = 41
+    RIGHT = 42
+
+
+class ToolLengthCompensation(Enum):
+    ADD = 43
+    SUB = 44
+
+
 class GGroups(Enum):
     MCODE = -1
     NONMODAL = 0
     MOTION = 1
-    PLANE = 2
-    DISTANCE = 3
-    FEEDRATE = 5
+    PLANE_SELECTION = 2
+    DISTANCE_MODE = 3
+    FEEDRATE_MODE = 5
     UNITS = 6
     CUTTER_COMPENSATION = 7
     TOOL_LENGTH_OFFSET = 8
     CANNED_CYCLE = 9
     CANNED_CYCLE_RETURN_MODE = 10
+    SCALING = 11
     COORDINATE_SYSTEM = 12
     EXACT_STOP = 15
     ROTATION = 16

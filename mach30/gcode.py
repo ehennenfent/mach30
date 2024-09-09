@@ -1,7 +1,18 @@
 import typing as t
 from typing import SupportsFloat as maybe_float
 
-from .models import Code, CodeType, GGroups, ModalCode
+from .models import (
+    Code,
+    CodeType,
+    CutterCompensationDirection,
+    GGroups,
+    ModalCode,
+    MotionPlane,
+    PositionMode,
+    ToolLengthCompensation,
+    Units,
+    WorkOffset,
+)
 
 
 def _six_axes_to_codes(
@@ -45,7 +56,7 @@ class GCode(Code):
 
 
 class RapidMove(ModalCode):
-    enter_code: Code = Code(code_type="G", code_number=0)
+    enter_code: GCode = GCode(code_number=0)
     group: GGroups = GGroups.MOTION
 
     def move(
@@ -63,7 +74,7 @@ class RapidMove(ModalCode):
 
 
 class LinearMove(ModalCode):
-    enter_code: Code = Code(code_type="G", code_number=1)
+    enter_code: GCode = GCode(code_number=1)
     group: GGroups = GGroups.MOTION
 
     def __init__(self, feedrate: maybe_float, *args, **kwargs):
@@ -86,7 +97,7 @@ class LinearMove(ModalCode):
 
 class CannedCycle(ModalCode):
     group: GGroups = GGroups.CANNED_CYCLE
-    exit_code: Code = Code(code_type="G", code_number=80)
+    exit_code: GCode = GCode(code_number=80, comment="cancel canned cycle")
 
     def move(
         self,
@@ -104,8 +115,58 @@ class CannedCycle(ModalCode):
 
 class DrillCycle(CannedCycle):
     group: GGroups = GGroups.CANNED_CYCLE
-    enter_code: Code = Code(code_type="G", code_number=81)
+    enter_code: GCode = GCode(code_number=81, comment="begin drilling cycle")
 
     def __init__(self, f: maybe_float, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.enter_code.sub_codes.append(Code(code_type="F", code_number=float(f)))
+
+
+class SetCutterCompensation(ModalCode):
+    group: GGroups = GGroups.CUTTER_COMPENSATION
+    exit_code: GCode = GCode(code_number=40, comment="cancel cutter compensation")
+
+    def __init__(self, direction: CutterCompensationDirection, d: maybe_float, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.enter_code = GCode(code_number=direction.value, sub_codes=[Code(code_type="D", code_number=float(d))])
+
+
+class SetToolLengthCompensation(ModalCode):
+    group: GGroups = GGroups.TOOL_LENGTH_OFFSET
+    exit_code: GCode = GCode(code_number=49, comment="cancel tool length compensation")
+
+    def __init__(self, direction: ToolLengthCompensation, h: int, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.enter_code = GCode(code_number=direction.value, sub_codes=[Code(code_type="H", code_number=float(h))])
+
+
+class SetUnits(ModalCode):
+    group: GGroups = GGroups.UNITS
+
+    def __init__(self, units: Units, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.enter_code = GCode(code_number=units.value, comment=f"use {units.name.lower()}")
+
+
+class SetMotionPlane(ModalCode):
+    group: GGroups = GGroups.PLANE_SELECTION
+
+    def __init__(self, motion_plane: MotionPlane, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.enter_code = GCode(code_number=motion_plane.value, comment=f"{motion_plane.name} plane")
+
+
+class SetPositionMode(ModalCode):
+    group: GGroups = GGroups.DISTANCE_MODE
+
+    def __init__(self, position_mode: PositionMode, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.enter_code = GCode(code_number=position_mode.value, comment=f"{position_mode.name.lower()} positioning")
+
+
+class SetWorkOffset(ModalCode):
+    group: GGroups = GGroups.COORDINATE_SYSTEM
+
+    def __init__(self, work_offset: WorkOffset, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.enter_code = GCode(code_number=work_offset.value, comment=f"use work offset {work_offset.name}.lower")
