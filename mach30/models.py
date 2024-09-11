@@ -17,6 +17,11 @@ class SpindleDirection(Enum):
     REVERSE = 4
 
 
+class CircularMotionDirection(Enum):
+    CLOCKWISE = 2
+    COUNTERCLOCKWISE = 3
+
+
 class Units(Enum):
     INCHES = 20
     MILLIMETERS = 21

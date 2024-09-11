@@ -1,7 +1,9 @@
 import typing as t
 from typing import SupportsFloat as maybe_float
+from typing import get_args
 
 from .models import (
+    CircularMotionDirection,
     Code,
     CodeType,
     CutterCompensationDirection,
@@ -15,28 +17,10 @@ from .models import (
 )
 
 
-def _six_axes_to_codes(
-    x: maybe_float | None = None,
-    y: maybe_float | None = None,
-    z: maybe_float | None = None,
-    a: maybe_float | None = None,
-    b: maybe_float | None = None,
-    c: maybe_float | None = None,
-) -> t.List[Code]:
-    codes = []
-    if x is not None:
-        codes.append(Code(code_type="X", code_number=float(x)))
-    if y is not None:
-        codes.append(Code(code_type="Y", code_number=float(y)))
-    if z is not None:
-        codes.append(Code(code_type="Z", code_number=float(z)))
-    if a is not None:
-        codes.append(Code(code_type="A", code_number=float(a)))
-    if b is not None:
-        codes.append(Code(code_type="B", code_number=float(b)))
-    if c is not None:
-        codes.append(Code(code_type="C", code_number=float(c)))
-    return codes
+def _kwargs_to_codes(**kwargs: maybe_float | None) -> t.List[Code]:
+    assert all(key.upper() in get_args(CodeType) for key in kwargs.keys()), f"Invalid code type in {kwargs.keys()}"
+    # mypy isn't quite smart enough to understand that the assert above guarantees that the keys are valid
+    return [Code(code_type=key.upper(), code_number=float(value)) for key, value in kwargs.items() if value is not None]  # type: ignore
 
 
 def combine_motion_codes(codes: t.List[Code]) -> Code | None:
@@ -87,7 +71,7 @@ class RapidMove(ModalCode):
         b: maybe_float | None = None,
         c: maybe_float | None = None,
     ) -> None:
-        codes = _six_axes_to_codes(x, y, z, a, b, c)
+        codes = _kwargs_to_codes(x=x, y=y, z=z, a=a, b=b, c=c)
         if maybe_code := combine_motion_codes(codes):
             self.builder.add(maybe_code)
 
@@ -109,9 +93,36 @@ class LinearMove(ModalCode):
         b: maybe_float | None = None,
         c: maybe_float | None = None,
     ) -> None:
-        codes = _six_axes_to_codes(x, y, z, a, b, c)
+        codes = _kwargs_to_codes(x=x, y=y, z=z, a=a, b=b, c=c)
         if maybe_code := combine_motion_codes(codes):
             self.builder.add(maybe_code)
+
+
+class CircularMove(ModalCode):
+
+    group: GGroups = GGroups.MOTION
+
+    def __init__(
+        self,
+        direction: CircularMotionDirection,
+        feedrate: maybe_float,
+        i: maybe_float | None = None,
+        j: maybe_float | None = None,
+        k: maybe_float | None = None,
+        r: maybe_float | None = None,
+        x: maybe_float | None = None,
+        y: maybe_float | None = None,
+        z: maybe_float | None = None,
+        a: maybe_float | None = None,
+        *args,
+        **kwargs,
+    ):
+        super().__init__(
+            enter_code=GCode(code_number=direction.value, sub_codes=[Code(code_type="F", code_number=float(feedrate))]),
+            *args,
+            **kwargs,
+        )
+        self.enter_code.sub_codes.extend(_kwargs_to_codes(i=i, j=j, k=k, r=r, x=x, y=y, z=z, a=a))
 
 
 class CannedCycle(ModalCode):
@@ -128,7 +139,7 @@ class CannedCycle(ModalCode):
         b: maybe_float | None = None,
         c: maybe_float | None = None,
     ) -> None:
-        codes = _six_axes_to_codes(x, y, z, a, b, c)
+        codes = _kwargs_to_codes(x=x, y=y, z=z, a=a, b=b, c=c)
         if maybe_code := combine_motion_codes(codes):
             self.builder.add(maybe_code)
 
@@ -191,20 +202,18 @@ class PeckDrillCycle(CannedCycle):
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
-        self.enter_code.sub_codes.append(Code(code_type="F", code_number=float(f)))
-        self.enter_code.sub_codes.append(Code(code_type="Z", code_number=float(z)))
-        if r is not None:
-            self.enter_code.sub_codes.append(Code(code_type="R", code_number=float(r)))
-        if p is not None:
-            self.enter_code.sub_codes.append(Code(code_type="P", code_number=float(p)))
-        if i is not None:
-            self.enter_code.sub_codes.append(Code(code_type="I", code_number=float(i)))
-        if j is not None:
-            self.enter_code.sub_codes.append(Code(code_type="J", code_number=float(j)))
-        if k is not None:
-            self.enter_code.sub_codes.append(Code(code_type="K", code_number=float(k)))
-        if q is not None:
-            self.enter_code.sub_codes.append(Code(code_type="Q", code_number=float(q)))
+        self.enter_code.sub_codes.extend(
+            _kwargs_to_codes(
+                f=f,
+                z=z,
+                r=r,
+                p=p,
+                i=i,
+                j=j,
+                k=k,
+                q=q,
+            )
+        )
 
 
 class TapCycle(CannedCycle):
@@ -223,16 +232,16 @@ class TapCycle(CannedCycle):
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
-        self.enter_code.sub_codes.append(Code(code_type="F", code_number=float(f)))
-        self.enter_code.sub_codes.append(Code(code_type="Z", code_number=float(z)))
-        if r is not None:
-            self.enter_code.sub_codes.append(Code(code_type="R", code_number=float(r)))
-        if j is not None:
-            self.enter_code.sub_codes.append(Code(code_type="J", code_number=float(j)))
-        if q is not None:
-            self.enter_code.sub_codes.append(Code(code_type="Q", code_number=float(q)))
-        if s is not None:
-            self.enter_code.sub_codes.append(Code(code_type="S", code_number=float(s)))
+        self.enter_code.sub_codes.extend(
+            _kwargs_to_codes(
+                f=f,
+                z=z,
+                r=r,
+                j=j,
+                q=q,
+                s=s,
+            )
+        )
 
 
 class SetCutterCompensation(ModalCode):

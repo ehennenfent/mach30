@@ -11,33 +11,37 @@ def test_build_homework():
 
     with SetWorkOffset(builder=builder, work_offset=WorkOffset.ONE):
         builder.add(ToolChange(tool_number=6))
-        with use_tool(builder=builder, tool_number=7):
-            with SpindleOn(builder=builder, direction=SpindleDirection.FORWARD, speed=2750):
-                with RapidMove(builder=builder) as rapid:
-                    rapid.move(x=0, y=0, z=0.1)
-                with SpotDrillCycle(builder=builder, f=11, z=-0.150, r=0.1) as drill:
-                    drill.move(x=0, y=1)
-                    drill.move(x=-1.0, y=1)
-                    drill.move(x=-1.0, y=0)
-                    drill.move(x=-1.0, y=-1)
-                    drill.move(x=0, y=-1)
-                    drill.move(x=1.0, y=-1)
-                    drill.move(x=1.0, y=0)
-                    drill.move(x=1.0, y=1)
+        with (
+            use_tool(builder=builder, tool_number=7),
+            SpindleOn(builder=builder, direction=SpindleDirection.FORWARD, speed=2750),
+        ):
+            with RapidMove(builder=builder) as rapid:
+                rapid.move(x=0, y=0, z=0.1)
+            with SpotDrillCycle(builder=builder, f=11, z=-0.150, r=0.1) as drill:
+                drill.move(x=0, y=1)
+                drill.move(x=-1.0, y=1)
+                drill.move(x=-1.0, y=0)
+                drill.move(x=-1.0, y=-1)
+                drill.move(x=0, y=-1)
+                drill.move(x=1.0, y=-1)
+                drill.move(x=1.0, y=0)
+                drill.move(x=1.0, y=1)
 
-        with use_tool(builder=builder, tool_number=7):
-            with SpindleOn(builder=builder, direction=SpindleDirection.FORWARD, speed=4500):
-                with RapidMove(builder=builder) as rapid:
-                    rapid.move(x=0, y=0, z=0.1)
-                with DrillCycle(builder=builder, f=15, z=-0.350, r=0.1) as drill:
-                    drill.move(x=0, y=1)
-                    drill.move(x=-1.0, y=1)
-                    drill.move(x=-1.0, y=0)
-                    drill.move(x=-1.0, y=-1)
-                    drill.move(x=0, y=-1)
-                    drill.move(x=1.0, y=-1)
-                    drill.move(x=1.0, y=0)
-                    drill.move(x=1.0, y=1)
+        with (
+            use_tool(builder=builder, tool_number=7),
+            SpindleOn(builder=builder, direction=SpindleDirection.FORWARD, speed=4500),
+        ):
+            with RapidMove(builder=builder) as rapid:
+                rapid.move(x=0, y=0, z=0.1)
+            with DrillCycle(builder=builder, f=15, z=-0.350, r=0.1) as drill:
+                drill.move(x=0, y=1)
+                drill.move(x=-1.0, y=1)
+                drill.move(x=-1.0, y=0)
+                drill.move(x=-1.0, y=-1)
+                drill.move(x=0, y=-1)
+                drill.move(x=1.0, y=-1)
+                drill.move(x=1.0, y=0)
+                drill.move(x=1.0, y=1)
     builder.add(EndProgram(comment="all done"))
 
     rendered = builder.render()
