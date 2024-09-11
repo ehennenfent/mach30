@@ -3,7 +3,7 @@ from enum import Enum
 
 from pydantic import BaseModel
 
-CodeType = t.Literal["G", "M", "T", "R", "F", "S", "H", "D", "X", "Y", "Z", "A", "B", "C"]
+CodeType = t.Literal["G", "M", "T", "R", "F", "S", "H", "D", "X", "Y", "Z", "A", "B", "C", "P"]
 
 
 class MotionPlane(Enum):
@@ -98,6 +98,12 @@ class ProgramBuilder(BaseModel):
             self.codes.append(code)
 
     def render(self) -> str:
+        return f"%\nO{self.number:05}\n{self._render_comments()}\n{self._render_codes()}\n%"
+
+    def _render_comments(self) -> str:
+        return "\n".join(f"({comment})" for comment in self.preamble_comments)
+
+    def _render_codes(self) -> str:
         return "\n".join(code.render() for code in self.codes)
 
     def enter(self, code: "ModalCode") -> None:
@@ -132,4 +138,6 @@ class ModalCode(BaseModel):
         if self.exit_code is not None:
             self.builder.add(self.exit_code)
         else:
+            # Maybe we need a stack that tracks the last group, so we can resume
+            # whatever the previous group was? Idk if that makes sense.
             self.builder.resume(self.group)
