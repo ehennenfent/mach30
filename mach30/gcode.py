@@ -54,6 +54,25 @@ def combine_motion_codes(codes: t.List[Code]) -> Code | None:
 class GCode(Code):
     code_type: CodeType = "G"
 
+    @property
+    def docs(self) -> str:
+        return (
+            f"https://www.haascnc.com/service/codes-settings.type=gcode.machine=mill.value=G{self.code_number:02}.html"
+        )
+
+
+class Dwell(Code):
+    code_number: int = 4
+
+    def __init__(self, p: maybe_float, is_millis: bool = False, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if is_millis:
+            self.sub_codes.append(
+                Code(code_type="P", code_number=int(float(p)))
+            )  # double cast needed to make mypy happy
+        else:
+            self.sub_codes.append(Code(code_type="P", code_number=float(p)))
+
 
 class RapidMove(ModalCode):
     enter_code: GCode = GCode(code_number=0)
@@ -113,6 +132,12 @@ class CannedCycle(ModalCode):
         if maybe_code := combine_motion_codes(codes):
             self.builder.add(maybe_code)
 
+    def goto_initial_z(self) -> None:
+        self.builder.add(GCode(code_number=98, comment="return to initial point"))
+
+    def goto_r_plane(self) -> None:
+        self.builder.add(GCode(code_number=99, comment="return to R plane"))
+
 
 class DrillCycle(CannedCycle):
     group: GGroups = GGroups.CANNED_CYCLE
@@ -146,6 +171,68 @@ class SpotDrillCycle(CannedCycle):
             self.enter_code.sub_codes.append(Code(code_type="R", code_number=float(r)))
         if p is not None:
             self.enter_code.sub_codes.append(Code(code_type="P", code_number=float(p)))
+
+
+class PeckDrillCycle(CannedCycle):
+    group: GGroups = GGroups.CANNED_CYCLE
+    enter_code: GCode = GCode(code_number=83, comment="begin peck drilling cycle")
+
+    def __init__(
+        self,
+        f: maybe_float,
+        z: maybe_float,
+        r: maybe_float | None = None,
+        p: maybe_float | None = None,
+        i: maybe_float | None = None,
+        j: maybe_float | None = None,
+        k: maybe_float | None = None,
+        q: maybe_float | None = None,
+        *args,
+        **kwargs,
+    ):
+        super().__init__(*args, **kwargs)
+        self.enter_code.sub_codes.append(Code(code_type="F", code_number=float(f)))
+        self.enter_code.sub_codes.append(Code(code_type="Z", code_number=float(z)))
+        if r is not None:
+            self.enter_code.sub_codes.append(Code(code_type="R", code_number=float(r)))
+        if p is not None:
+            self.enter_code.sub_codes.append(Code(code_type="P", code_number=float(p)))
+        if i is not None:
+            self.enter_code.sub_codes.append(Code(code_type="I", code_number=float(i)))
+        if j is not None:
+            self.enter_code.sub_codes.append(Code(code_type="J", code_number=float(j)))
+        if k is not None:
+            self.enter_code.sub_codes.append(Code(code_type="K", code_number=float(k)))
+        if q is not None:
+            self.enter_code.sub_codes.append(Code(code_type="Q", code_number=float(q)))
+
+
+class TapCycle(CannedCycle):
+    group: GGroups = GGroups.CANNED_CYCLE
+    enter_code: GCode = GCode(code_number=84, comment="begin tapping cycle")
+
+    def __init__(
+        self,
+        f: maybe_float,
+        z: maybe_float,
+        r: maybe_float | None = None,
+        j: maybe_float | None = None,
+        q: maybe_float | None = None,
+        s: maybe_float | None = None,
+        *args,
+        **kwargs,
+    ):
+        super().__init__(*args, **kwargs)
+        self.enter_code.sub_codes.append(Code(code_type="F", code_number=float(f)))
+        self.enter_code.sub_codes.append(Code(code_type="Z", code_number=float(z)))
+        if r is not None:
+            self.enter_code.sub_codes.append(Code(code_type="R", code_number=float(r)))
+        if j is not None:
+            self.enter_code.sub_codes.append(Code(code_type="J", code_number=float(j)))
+        if q is not None:
+            self.enter_code.sub_codes.append(Code(code_type="Q", code_number=float(q)))
+        if s is not None:
+            self.enter_code.sub_codes.append(Code(code_type="S", code_number=float(s)))
 
 
 class SetCutterCompensation(ModalCode):

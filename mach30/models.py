@@ -3,7 +3,7 @@ from enum import Enum
 
 from pydantic import BaseModel
 
-CodeType = t.Literal["G", "M", "T", "R", "F", "S", "H", "D", "X", "Y", "Z", "A", "B", "C", "P"]
+CodeType = t.Literal["G", "M", "T", "R", "F", "S", "H", "D", "X", "Y", "Z", "A", "B", "C", "P", "I", "J", "K", "Q"]
 
 
 class MotionPlane(Enum):

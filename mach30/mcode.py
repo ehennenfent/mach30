@@ -4,6 +4,12 @@ from .models import Code, CodeType, GGroups, ModalCode, SpindleDirection
 class MCode(Code):
     code_type: CodeType = "M"
 
+    @property
+    def docs(self) -> str:
+        return (
+            f"https://www.haascnc.com/service/codes-settings.type=mcode.machine=mill.value=M{self.code_number:02}.html"
+        )
+
 
 class StopProgram(MCode):
     code_number: int = 0
