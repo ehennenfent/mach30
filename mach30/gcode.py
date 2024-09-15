@@ -264,7 +264,7 @@ class SetToolLengthCompensation(ModalCode):
 
     def __init__(self, direction: ToolLengthCompensation, h: int, *args, **kwargs):
         super().__init__(
-            enter_code=GCode(code_number=direction.value, sub_codes=[Code(code_type="H", code_number=float(h))]),
+            enter_code=GCode(code_number=direction.value, sub_codes=[Code(code_type="H", code_number=h)]),
             *args,
             **kwargs,
         )

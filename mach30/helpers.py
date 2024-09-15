@@ -30,4 +30,4 @@ def use_tool(
     builder: ProgramBuilder, tool_number: int, direction: ToolLengthCompensation = ToolLengthCompensation.ADD
 ) -> SetToolLengthCompensation:
     builder.add(ToolChange(tool_number=tool_number))
-    return SetToolLengthCompensation(builder=builder, direction=direction, h=7)
+    return SetToolLengthCompensation(builder=builder, direction=direction, h=tool_number)
