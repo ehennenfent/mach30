@@ -1,7 +1,7 @@
 from mach30 import ProgramBuilder
 from mach30.gcode import DrillCycle, RapidMove, SetWorkOffset, SpotDrillCycle
 from mach30.helpers import standard_preamble, use_tool
-from mach30.mcode import EndProgram, SpindleOn, ToolChange
+from mach30.mcode import EndProgram, SpindleOn
 from mach30.models import SpindleDirection, WorkOffset
 
 
@@ -10,9 +10,8 @@ def test_build_homework():
     standard_preamble(builder)
 
     with SetWorkOffset(builder=builder, work_offset=WorkOffset.ONE):
-        builder.add(ToolChange(tool_number=6))
         with (
-            use_tool(builder=builder, tool_number=7),
+            use_tool(builder=builder, tool_number=6),
             SpindleOn(builder=builder, direction=SpindleDirection.FORWARD, speed=2750),
         ):
             with RapidMove(builder=builder) as rapid:
