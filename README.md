@@ -6,4 +6,4 @@ GCode library for using Python as CAM
 - [ ] And maybe we don't need so many G49's?
 - [ ] Figure out what's going on with mode changes
 - [ ] Abstracting away tool changes might make this simpler
-
+- [ ] Figure out a convenient way to work in G53
