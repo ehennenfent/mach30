@@ -1,5 +1,6 @@
 import typing as t
 from enum import Enum
+from pathlib import Path
 
 from pydantic import BaseModel
 
@@ -102,13 +103,15 @@ class ProgramBuilder(BaseModel):
         for code in codes:
             self.codes.append(code)
 
-    def render(self) -> str:
-        return f"%\nO{self.number:05}\n{self._render_comments()}\n{self._render_codes()}\n%"
+    def render(self, with_line_numbers: bool = False) -> str:
+        return f"%\nO{self.number:05}\n{self._render_comments()}\n{self._render_codes(with_line_numbers=with_line_numbers)}\n%"
 
     def _render_comments(self) -> str:
         return "\n".join(f"({comment})" for comment in self.preamble_comments)
 
-    def _render_codes(self) -> str:
+    def _render_codes(self, with_line_numbers: bool = False) -> str:
+        if with_line_numbers:
+            return "\n".join(f"N{i:03} {code.render()}" for i, code in enumerate(self.codes, start=1))
         return "\n".join(code.render() for code in self.codes)
 
     def enter(self, code: "ModalCode") -> None:
@@ -125,6 +128,10 @@ class ProgramBuilder(BaseModel):
         """replay the last modal entry code on the stack, if present"""
         if stack := self.modal_stacks.get(group, []):
             self.add(stack[-1].enter_code)
+
+    def save(self, fname: Path, with_line_numbers: bool = False) -> None:
+        with open(fname, "w") as f:
+            f.write(self.render(with_line_numbers=with_line_numbers))
 
 
 class ModalCode(BaseModel):
