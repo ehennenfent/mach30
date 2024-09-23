@@ -47,4 +47,4 @@ def test_build_homework():
             )
     builder.add(EndProgram(comment="end program"))
 
-    builder.save("eric_hennenfent_program3.nc", with_line_numbers=True)
+    builder.save("generated_programs/eric_hennenfent_program3.nc", with_line_numbers=True)
