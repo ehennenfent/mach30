@@ -1,30 +1,16 @@
 import typing as t
+from typing import SupportsFloat as maybe_float
 
-from .models import (
+from .enums import (
     CircularMotionDirection,
-    Code,
-    CodeType,
     CutterCompensationDirection,
-    GGroups,
     MotionPlane,
     PositionMode,
     ToolLengthCompensation,
     Units,
     WorkOffset,
 )
-
-
-class GCode(Code):
-    code_type: CodeType = "G"
-    # group: GGroups
-    args: t.List[CodeType] = []
-    description: str | None = None
-
-    @property
-    def docs(self) -> str:
-        return (
-            f"https://www.haascnc.com/service/codes-settings.type=gcode.machine=mill.value=G{self.code_number:02}.html"
-        )
+from .models import Code, CodeType, GCode, GGroups
 
 
 class G00(GCode):
@@ -42,6 +28,14 @@ class G01(GCode):
     group: GGroups = GGroups.MOTION
     description: str = "Linear Move"
     args: t.List[CodeType] = ["X", "Y", "Z", "F"]
+    feedrate: float | int
+
+    def render(self) -> str:
+        # TODO - fix side effects
+        if self.sub_codes:
+            if self.sub_codes[0] != (new_feed := Code(code_type="F", code_number=float(self.feedrate))):
+                self.sub_codes.insert(0, new_feed)
+        return super().render()
 
 
 LinearFeed = G01
@@ -52,6 +46,13 @@ class G02(GCode):
     group: GGroups = GGroups.MOTION
     description: str = "Clockwise Circular Move"
     args: t.List[CodeType] = ["X", "Y", "Z", "I", "J", "K", "R"]
+    feedrate: float | int
+
+    def render(self) -> str:
+        if self.sub_codes:
+            if self.sub_codes[0] != (new_feed := Code(code_type="F", code_number=float(self.feedrate))):
+                self.sub_codes.insert(0, new_feed)
+        return super().render()
 
 
 CWFeed = G02
@@ -62,9 +63,22 @@ class G03(GCode):
     group: GGroups = GGroups.MOTION
     description: str = "Counterclockwise Circular Move"
     args: t.List[CodeType] = ["X", "Y", "Z", "I", "J", "K", "R"]
+    feedrate: float | int
+
+    def render(self) -> str:
+        if self.sub_codes:
+            if self.sub_codes[0] != (new_feed := Code(code_type="F", code_number=float(self.feedrate))):
+                self.sub_codes.insert(0, new_feed)
+        return super().render()
 
 
 CCWFeed = G03
+
+
+def CircularFeed(direction: CircularMotionDirection, feedrate: maybe_float, *args, **kwargs) -> GCode:
+    if direction == CircularMotionDirection.CLOCKWISE:
+        return CWFeed(feedrate=float(feedrate), *args, **kwargs)
+    return CCWFeed(feedrate=float(feedrate), *args, **kwargs)
 
 
 class G04(GCode):
@@ -72,6 +86,15 @@ class G04(GCode):
     group: GGroups = GGroups.NONMODAL
     description: str = "Dwell"
     args: t.List[CodeType] = ["P"]
+
+    def __init__(self, p: maybe_float, is_millis: bool = False, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if is_millis:
+            self.sub_codes.append(
+                Code(code_type="P", code_number=int(float(p)))
+            )  # double cast needed to make mypy happy
+        else:
+            self.sub_codes.append(Code(code_type="P", code_number=float(p)))
 
 
 Dwell = G04

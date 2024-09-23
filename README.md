@@ -7,6 +7,7 @@ GCode library for using Python as CAM
 - [ ] Figure out what's going on with mode changes
 - [ ] Abstracting away tool changes might make this simpler
 - [ ] Figure out a convenient way to work in G53
+- [ ] warn for failure to change feedrate when changing tools
 
 
 * 1 override per group
