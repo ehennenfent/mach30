@@ -2,6 +2,7 @@ import typing as t
 from typing import SupportsFloat as maybe_float
 from typing import get_args
 
+from .gcode_basic import GCode
 from .models import (
     CircularMotionDirection,
     Code,
@@ -33,16 +34,6 @@ def combine_motion_codes(codes: t.List[Code]) -> Code | None:
             base = codes.pop(0)
             base.sub_codes.extend(codes)
             return base
-
-
-class GCode(Code):
-    code_type: CodeType = "G"
-
-    @property
-    def docs(self) -> str:
-        return (
-            f"https://www.haascnc.com/service/codes-settings.type=gcode.machine=mill.value=G{self.code_number:02}.html"
-        )
 
 
 class Dwell(Code):
@@ -106,14 +97,6 @@ class CircularMove(ModalCode):
         self,
         direction: CircularMotionDirection,
         feedrate: maybe_float,
-        i: maybe_float | None = None,
-        j: maybe_float | None = None,
-        k: maybe_float | None = None,
-        r: maybe_float | None = None,
-        x: maybe_float | None = None,
-        y: maybe_float | None = None,
-        z: maybe_float | None = None,
-        a: maybe_float | None = None,
         *args,
         **kwargs,
     ):
@@ -122,7 +105,21 @@ class CircularMove(ModalCode):
             *args,
             **kwargs,
         )
-        self.enter_code.sub_codes.extend(_kwargs_to_codes(i=i, j=j, k=k, r=r, x=x, y=y, z=z, a=a))
+
+    def move(
+        self,
+        i: maybe_float | None = None,
+        j: maybe_float | None = None,
+        k: maybe_float | None = None,
+        r: maybe_float | None = None,
+        x: maybe_float | None = None,
+        y: maybe_float | None = None,
+        z: maybe_float | None = None,
+        a: maybe_float | None = None,
+    ) -> None:
+        codes = _kwargs_to_codes(i=i, j=j, k=k, r=r, x=x, y=y, z=z, a=a)
+        if maybe_code := combine_motion_codes(codes):
+            self.builder.add(maybe_code)
 
 
 class CannedCycle(ModalCode):

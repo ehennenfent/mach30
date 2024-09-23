@@ -4,6 +4,9 @@ from pathlib import Path
 
 from pydantic import BaseModel
 
+# from typing import SupportsFloat as maybe_float
+
+
 CodeType = t.Literal["G", "M", "T", "R", "F", "S", "H", "D", "X", "Y", "Z", "A", "B", "C", "P", "I", "J", "K", "Q"]
 
 
@@ -71,6 +74,20 @@ class GGroups(Enum):
     DYNAMIC_WORK_OFFSET = 23
 
 
+class SpindleSettings(BaseModel):
+    direction: SpindleDirection
+    speed: float | int
+
+
+class Tool(BaseModel):
+    number: int
+    description: str
+    spindle: SpindleSettings
+
+    def __str__(self) -> str:
+        return f"(T{self.number:02} {self.description})"
+
+
 class Code(BaseModel):
     code_type: CodeType
     code_number: int | float
@@ -132,6 +149,69 @@ class ProgramBuilder(BaseModel):
     def save(self, fname: Path, with_line_numbers: bool = False) -> None:
         with open(fname, "w") as f:
             f.write(self.render(with_line_numbers=with_line_numbers))
+
+
+# class Builder2(BaseModel):
+#     number: int
+#     preamble_comments: t.List[str] = []
+#     codes: t.List[Code] = []
+#     tools: t.List[Tool] = []
+
+#     modal_stacks: t.Dict[GGroups, t.List[Code]] = {}
+#     mode_stack: t.List[GGroups] = []
+
+#     @property
+#     def last_mode(self) -> GGroups | None:
+#         if not self.mode_stack:
+#             return None
+#         return self.mode_stack[-1]
+
+#     @property
+#     def current_tool(self) -> Tool | None:
+#         if not self.tools:
+#             return None
+#         return self.tools[-1]
+
+#     def add(self, *codes: Code) -> None:
+#         for code in codes:
+#             self.codes.append(code)
+
+#     def __str__(self) -> str:
+#         return self.render(with_line_numbers=True)
+
+#     def render(self, with_line_numbers: bool = False) -> str:
+#         return f"%\nO{self.number:05}\n{self._render_comments()}\n{self._render_codes(with_line_numbers=with_line_numbers)}\n%"
+
+#     def _render_comments(self) -> str:
+#         all_comments = self.preamble_comments + [str(tool) for tool in self.tools]
+#         return "\n".join(f"({comment})" for comment in all_comments)
+
+#     def _render_codes(self, with_line_numbers: bool = False) -> str:
+#         if with_line_numbers:
+#             return "\n".join(f"N{i:03} {code.render()}" for i, code in enumerate(self.codes, start=1))
+#         return "\n".join(code.render() for code in self.codes)
+
+#     def enter(self, code: "ModalCode") -> None:
+#         """Add the current entry code to the modal stack"""
+#         self.modal_stacks.setdefault(code.group, []).append(code)
+
+#     def exit(self, group: GGroups) -> "ModalCode":
+#         """exit this mode and return the code that was popped"""
+#         if not (stack := self.modal_stacks.get(group, [])):
+#             raise RuntimeError(f"No modal ops for group {group} left on stack!")
+#         return stack.pop()
+
+#     def resume(self, group: GGroups) -> None:
+#         """replay the last modal entry code on the stack, if present"""
+#         if stack := self.modal_stacks.get(group, []):
+#             self.add(stack[-1].enter_code)
+
+#     def save(self, fname: Path, with_line_numbers: bool = False) -> None:
+#         with open(fname, "w") as f:
+#             print(self.render(with_line_numbers=with_line_numbers), file=f)
+
+#     def _move(self, **kwargs: maybe_float) -> None:
+#         pass
 
 
 class ModalCode(BaseModel):
