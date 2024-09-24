@@ -256,7 +256,7 @@ class ProgramBuilder(BaseModel):
         c: maybe_float | None = None,
         comment: str | None = None,
     ) -> None:
-        motion_code = LinearFeed(feedrate=self._resolve_feedrate(feedrate))
+        motion_code = LinearFeed.with_feedrate(feedrate=self._resolve_feedrate(feedrate))
 
         self._move(motion_code, comment=comment, x=x, y=y, z=z, a=a, b=b, c=c)
 
@@ -277,9 +277,9 @@ class ProgramBuilder(BaseModel):
         use_feedrate = self._resolve_feedrate(feedrate)
 
         motion_code: CWFeed | CCWFeed = (
-            CWFeed(feedrate=use_feedrate)
+            CWFeed.with_feedrate(feedrate=use_feedrate)
             if direction == CircularMotionDirection.CLOCKWISE
-            else CCWFeed(feedrate=use_feedrate)
+            else CCWFeed.with_feedrate(feedrate=use_feedrate)
         )
 
         self._move(motion_code, comment=comment, x=x, y=y, z=z, a=a, i=i, j=j, k=k, r=r)

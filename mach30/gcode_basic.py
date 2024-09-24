@@ -28,14 +28,19 @@ class G01(GCode):
     group: GGroups = GGroups.MOTION
     description: str = "Linear Move"
     args: t.List[CodeType] = ["X", "Y", "Z", "F"]
-    feedrate: float | int
 
-    def render(self) -> str:
-        # TODO - fix side effects
-        if self.sub_codes:
-            if self.sub_codes[0] != (new_feed := Code(code_type="F", code_number=float(self.feedrate))):
-                self.sub_codes.insert(0, new_feed)
-        return super().render()
+    @classmethod
+    def with_feedrate(cls, feedrate: float | int, *args, **kwargs) -> "G01":
+        sub_codes = kwargs.get("sub_codes", [])
+        sub_codes.append(Code(code_type="F", code_number=feedrate))
+        return cls(sub_codes=sub_codes, *args, **kwargs)
+
+    @property
+    def feedrate(self) -> float | int | None:
+        for code in self.sub_codes:
+            if code.code_type == "F":
+                return code.code_number
+        return None
 
 
 LinearFeed = G01
@@ -46,13 +51,19 @@ class G02(GCode):
     group: GGroups = GGroups.MOTION
     description: str = "Clockwise Circular Move"
     args: t.List[CodeType] = ["X", "Y", "Z", "I", "J", "K", "R"]
-    feedrate: float | int
 
-    def render(self) -> str:
-        if self.sub_codes:
-            if self.sub_codes[0] != (new_feed := Code(code_type="F", code_number=float(self.feedrate))):
-                self.sub_codes.insert(0, new_feed)
-        return super().render()
+    @classmethod
+    def with_feedrate(cls, feedrate: float | int, *args, **kwargs) -> "G02":
+        sub_codes = kwargs.get("sub_codes", [])
+        sub_codes.append(Code(code_type="F", code_number=feedrate))
+        return cls(sub_codes=sub_codes, *args, **kwargs)
+
+    @property
+    def feedrate(self) -> float | int | None:
+        for code in self.sub_codes:
+            if code.code_type == "F":
+                return code.code_number
+        return None
 
 
 CWFeed = G02
@@ -63,22 +74,28 @@ class G03(GCode):
     group: GGroups = GGroups.MOTION
     description: str = "Counterclockwise Circular Move"
     args: t.List[CodeType] = ["X", "Y", "Z", "I", "J", "K", "R"]
-    feedrate: float | int
 
-    def render(self) -> str:
-        if self.sub_codes:
-            if self.sub_codes[0] != (new_feed := Code(code_type="F", code_number=float(self.feedrate))):
-                self.sub_codes.insert(0, new_feed)
-        return super().render()
+    @classmethod
+    def with_feedrate(cls, feedrate: float | int, *args, **kwargs) -> "G03":
+        sub_codes = kwargs.get("sub_codes", [])
+        sub_codes.append(Code(code_type="F", code_number=feedrate))
+        return cls(sub_codes=sub_codes, *args, **kwargs)
+
+    @property
+    def feedrate(self) -> float | int | None:
+        for code in self.sub_codes:
+            if code.code_type == "F":
+                return code.code_number
+        return None
 
 
 CCWFeed = G03
 
 
-def CircularFeed(direction: CircularMotionDirection, feedrate: maybe_float, *args, **kwargs) -> GCode:
+def CircularFeed(direction: CircularMotionDirection, feedrate: float | int) -> GCode:
     if direction == CircularMotionDirection.CLOCKWISE:
-        return CWFeed(feedrate=float(feedrate), *args, **kwargs)
-    return CCWFeed(feedrate=float(feedrate), *args, **kwargs)
+        return CWFeed.with_feedrate(feedrate=feedrate)
+    return CCWFeed.with_feedrate(feedrate=feedrate)
 
 
 class G04(GCode):
