@@ -10,6 +10,7 @@ class MotionPlane(Enum):
 class SpindleDirection(Enum):
     FORWARD = 3
     REVERSE = 4
+    OFF = 5
 
 
 class CircularMotionDirection(Enum):

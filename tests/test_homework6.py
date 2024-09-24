@@ -1,5 +1,6 @@
 from mach30.builder import ProgramBuilder
 from mach30.enums import CircularMotionDirection, WorkOffset
+from mach30.gcode import DrillCycle
 from mach30.models import SpindleDirection, SpindleSettings, Tool
 
 T4_FEED = 18.0
@@ -46,7 +47,8 @@ def test_build_homework():
 
         builder.use_tool(tool_1, final_z=1)  # .125 end mill
         builder.rapid(x=0.875, y=0, z=0.1, comment="return to starting point, just in case")
-        with builder.drill_cycle(
+        with DrillCycle(
+            builder=builder,
             f=T1_FEED,
             z=-0.260,
             r=0.1,

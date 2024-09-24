@@ -10,11 +10,11 @@ from .enums import (
     GGroups,
     MotionPlane,
     PositionMode,
+    SpindleDirection,
     ToolLengthCompensation,
     Units,
     WorkOffset,
 )
-from .gcode import DrillCycle
 from .gcode_basic import (
     CancelCannedCycle,
     CancelCutterComp,
@@ -55,7 +55,7 @@ class ProgramBuilder(BaseModel):
     _coolant_on: bool = False
     _use_global: bool = False
     _motion_feedrate: int | float | None = None
-    _spindle_settings: SpindleSettings | None = None
+    _spindle_settings: SpindleSettings = SpindleSettings(direction=SpindleDirection.OFF, speed=0)  # should be stack
 
     # should do standard cancellations
 
@@ -143,7 +143,7 @@ class ProgramBuilder(BaseModel):
                 MCode(
                     code_number=tool.spindle.direction.value,
                     sub_codes=[Code(code_type="S", code_number=tool.spindle.speed)],
-                    commment="set spindle direction and speed",
+                    comment="set spindle direction and speed",
                 )
             )
             self._spindle_settings = tool.spindle
@@ -164,19 +164,30 @@ class ProgramBuilder(BaseModel):
 
         assert dia_comp is None, "unimplemented"
 
-        # TODO - do something with the spindle
+    def override_spindle(self, new_settings: SpindleSettings) -> "BuilderCtx":
+        old_settings = self._spindle_settings
 
-    def drill_cycle(
-        self,
-        f: maybe_float,
-        z: maybe_float,
-        r: maybe_float | None = None,
-    ):
-        DrillCycle.model_rebuild
-        return DrillCycle(builder=self, f=f, z=z, r=r)
+        def enter_spindle(ctx: "BuilderCtx") -> None:
+            ctx.builder.add(
+                MCode(
+                    code_number=new_settings.direction.value,
+                    sub_codes=[Code(code_type="S", code_number=new_settings.speed)],
+                    comment="set spindle direction and speed",
+                )
+            )
+            ctx.builder._spindle_settings = new_settings
 
-    def override_spindle(self):
-        pass
+        def exit_spindle(ctx: "BuilderCtx") -> None:
+            ctx.builder.add(
+                MCode(
+                    code_number=old_settings.direction.value,
+                    sub_codes=[Code(code_type="S", code_number=old_settings.speed)],
+                    comment="reset spindle direction and speed",
+                )
+            )
+            ctx.builder._spindle_settings = old_settings
+
+        return BuilderCtx(self, enter_spindle, exit_spindle)
 
     def override_coolant(self):
         pass
@@ -228,6 +239,12 @@ class ProgramBuilder(BaseModel):
 
         self._move(Rapid(), comment=comment, x=x, y=y, z=z, a=a, b=b, c=c)
 
+    def _resolve_feedrate(self, feedrate: maybe_float | None) -> float:
+        if feedrate is not None:
+            return float(feedrate)
+        assert self._motion_feedrate is not None, "You need to provide an initial feedrate"
+        return float(self._motion_feedrate)
+
     def linear_feed(
         self,
         feedrate: maybe_float | None = None,
@@ -239,10 +256,7 @@ class ProgramBuilder(BaseModel):
         c: maybe_float | None = None,
         comment: str | None = None,
     ) -> None:
-        assert feedrate is not None or self._motion_feedrate is not None, "You need to provide an initial feedrate"
-        use_feedrate = feedrate if feedrate is not None else self._motion_feedrate
-
-        motion_code = LinearFeed(feedrate=float(use_feedrate))
+        motion_code = LinearFeed(feedrate=self._resolve_feedrate(feedrate))
 
         self._move(motion_code, comment=comment, x=x, y=y, z=z, a=a, b=b, c=c)
 
@@ -260,13 +274,12 @@ class ProgramBuilder(BaseModel):
         r: maybe_float | None = None,
         comment: str | None = None,
     ) -> None:
-        assert feedrate is not None or self._motion_feedrate is not None, "You need to provide an initial feedrate"
-        use_feedrate = feedrate if feedrate is not None else self._motion_feedrate
+        use_feedrate = self._resolve_feedrate(feedrate)
 
-        motion_code = (
-            CWFeed(feedrate=float(use_feedrate))
+        motion_code: CWFeed | CCWFeed = (
+            CWFeed(feedrate=use_feedrate)
             if direction == CircularMotionDirection.CLOCKWISE
-            else CCWFeed(feedrate=float(use_feedrate))
+            else CCWFeed(feedrate=use_feedrate)
         )
 
         self._move(motion_code, comment=comment, x=x, y=y, z=z, a=a, i=i, j=j, k=k, r=r)
@@ -277,10 +290,11 @@ class ProgramBuilder(BaseModel):
         comment: str | None = None,
         **kwargs: maybe_float | None,
     ) -> None:
-        codes = []
+        codes: t.List[Code] = []
         if self._should_update_motion(motion_code):
             codes.append(motion_code)
             if motion_code.code_number in (1, 2, 3):
+                assert hasattr(motion_code, "feedrate")  # you're welcome mypy
                 self._motion_feedrate = motion_code.feedrate
 
         codes.extend(kwargs_to_codes(**kwargs))
@@ -308,6 +322,7 @@ class ProgramBuilder(BaseModel):
         if self.current_mode_op.code_number != new_code.code_number:
             return True
         if new_code.code_number in (1, 2, 3):
+            assert hasattr(new_code, "feedrate")  # you're welcome mypy
             feedrate = new_code.feedrate
             if self._motion_feedrate is None or self._motion_feedrate != feedrate:
                 return True
@@ -319,6 +334,3 @@ class ProgramBuilder(BaseModel):
         if self._spindle_settings != new_spindle:
             return True
         return False
-
-
-DrillCycle.model_rebuild()  # TODO - eww

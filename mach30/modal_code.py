@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-# from .builder import ProgramBuilder
+from .builder import ProgramBuilder
 from .enums import GGroups
 from .models import Code
 
@@ -8,7 +8,7 @@ from .models import Code
 class ModalCode(BaseModel):
     enter_code: Code
     exit_code: Code | None = None
-    builder: "ProgramBuilder"
+    builder: ProgramBuilder
     group: GGroups
 
     def __enter__(self):
