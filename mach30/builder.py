@@ -57,18 +57,6 @@ class ProgramBuilder(BaseModel):
     _motion_feedrate: int | float | None = None
     _spindle_settings: SpindleSettings = SpindleSettings(direction=SpindleDirection.OFF, speed=0)  # should be stack
 
-    # should do standard cancellations
-
-    # motion
-    # plane
-    # units
-    # cutter comp
-    # tool offset
-    # coordinate system
-    # distance mode
-    # spindle direction & speed
-    # coolant
-
     @property
     def current_mode(self) -> GGroups | None:
         if not self.mode_stack:
@@ -124,12 +112,66 @@ class ProgramBuilder(BaseModel):
         with open(fname, "w") as f:
             print(self.render(with_line_numbers=with_line_numbers), file=f)
 
+    def compensate(
+        self,
+        tool: Tool,
+        start_pos: dict[str, maybe_float],
+        end_pos: dict[str, maybe_float],
+        direction: CutterCompensationDirection | None = CutterCompensationDirection.LEFT,
+        length: ToolLengthCompensation | None = ToolLengthCompensation.ADD,
+    ) -> "BuilderCtx":
+
+        normalized_start = {k.lower(): v for k, v in start_pos.items()}
+        normalized_end = {k.lower(): v for k, v in end_pos.items()}
+
+        def start_compensation(ctx: "BuilderCtx") -> None:
+            assert ctx.builder.current_mode == GGroups.MOTION, "must be in motion mode to use cutter compensation"
+            if length is not None:
+                assert "z" in normalized_start.keys(), "must include z start position for tool length compensation"
+                self.add(
+                    GCode(
+                        code_number=length.value,
+                        group=GGroups.TOOL_LENGTH_OFFSET,
+                        sub_codes=[
+                            Code(code_type="H", code_number=int(tool.number)),
+                            Code(code_type="Z", code_number=float(normalized_start["z"])),
+                        ],
+                    )
+                )
+            if direction is not None:
+                startpos_codes = kwargs_to_codes(**{k: v for k, v in normalized_start.items() if k in ("x", "y")})
+                self.add(
+                    GCode(
+                        code_number=direction.value,
+                        group=GGroups.CUTTER_COMPENSATION,
+                        sub_codes=[
+                            Code(code_type="D", code_number=int(tool.number)),
+                            *startpos_codes,
+                        ],
+                    )
+                )
+
+        def end_compensation(ctx: "BuilderCtx") -> None:
+            assert ctx.builder.current_mode == GGroups.MOTION, "must be in motion mode to use cutter compensation"
+            if length is not None:
+                assert "z" in normalized_end.keys(), "must include z end position for tool length compensation"
+                self.add(CancelToolLengthComp(sub_codes=[Code(code_type="Z", code_number=float(normalized_end["z"]))]))
+            if direction is not None:
+                assert (
+                    "x" in normalized_end.keys() and "y" in normalized_end.keys()
+                ), "must include x and y end positions for cutter compensation"
+                endpos_codes = kwargs_to_codes(**{k: v for k, v in normalized_end.items() if k in ("x", "y")})
+                self.add(
+                    CancelCutterComp(
+                        sub_codes=endpos_codes,
+                    )
+                )
+
+        return BuilderCtx(self, start_compensation, end_compensation)
+
     def use_tool(
         self,
         tool: Tool,
-        length_comp: ToolLengthCompensation | None = ToolLengthCompensation.ADD,
-        dia_comp: CutterCompensationDirection | None = None,
-        final_z: maybe_float | None = None,
     ) -> None:
         if tool not in self.tools:
             self.tools.append(tool)
@@ -147,22 +189,6 @@ class ProgramBuilder(BaseModel):
                 )
             )
             self._spindle_settings = tool.spindle
-
-        if length_comp is not None:
-            assert final_z is not None, "must include a final z position for tool length compensation"
-            self.add(
-                GCode(
-                    code_number=length_comp.value,
-                    group=GGroups.TOOL_LENGTH_OFFSET,
-                    comment=f"set tool length compensation to {length_comp.name}",
-                    sub_codes=[
-                        Code(code_type="H", code_number=int(tool.number)),
-                        Code(code_type="Z", code_number=float(final_z)),
-                    ],
-                )
-            )
-
-        assert dia_comp is None, "unimplemented"
 
     def override_spindle(self, new_settings: SpindleSettings) -> "BuilderCtx":
         old_settings = self._spindle_settings

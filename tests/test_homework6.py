@@ -29,34 +29,37 @@ def test_build_homework():
 
         builder.rapid(x=0.875, y=0, comment="position above starting point")
 
-        builder.use_tool(tool_4, final_z=1)  # 0.5 inch end mill
+        builder.use_tool(tool_4)  # 0.5 inch end mill
+        with builder.compensate(tool=tool_4, start_pos={"z": 1}, end_pos={"z": 1}, direction=None):
 
-        builder.linear_feed(z=-0.0625, feedrate=T4_FEED, comment="plunge to mill squircle")  # mill squircle
-        builder.linear_feed(y=0.5)
-        builder.circular_feed(direction=CircularMotionDirection.COUNTERCLOCKWISE, x=0.5, y=0.875, r=0.375)
-        builder.linear_feed(x=-0.5)
-        builder.circular_feed(direction=CircularMotionDirection.COUNTERCLOCKWISE, x=-0.875, y=0.5, r=0.375)
-        builder.linear_feed(y=-0.5)
-        builder.circular_feed(direction=CircularMotionDirection.COUNTERCLOCKWISE, x=-0.5, y=-0.875, r=0.375)
-        builder.linear_feed(x=0.5)
-        builder.circular_feed(direction=CircularMotionDirection.COUNTERCLOCKWISE, x=0.875, y=-0.5, r=0.375)
-        builder.linear_feed(y=0)
+            builder.linear_feed(z=-0.0625, feedrate=T4_FEED, comment="plunge to mill squircle")  # mill squircle
+            builder.linear_feed(y=0.5)
+            builder.circular_feed(direction=CircularMotionDirection.COUNTERCLOCKWISE, x=0.5, y=0.875, r=0.375)
+            builder.linear_feed(x=-0.5)
+            builder.circular_feed(direction=CircularMotionDirection.COUNTERCLOCKWISE, x=-0.875, y=0.5, r=0.375)
+            builder.linear_feed(y=-0.5)
+            builder.circular_feed(direction=CircularMotionDirection.COUNTERCLOCKWISE, x=-0.5, y=-0.875, r=0.375)
+            builder.linear_feed(x=0.5)
+            builder.circular_feed(direction=CircularMotionDirection.COUNTERCLOCKWISE, x=0.875, y=-0.5, r=0.375)
+            builder.linear_feed(y=0)
 
-        builder.linear_feed(z=-0.125, comment="plunge to mill circle")
-        builder.circular_feed(direction=CircularMotionDirection.COUNTERCLOCKWISE, i=-0.875, j=0)
+            builder.linear_feed(z=-0.125, comment="plunge to mill circle")
+            builder.circular_feed(direction=CircularMotionDirection.COUNTERCLOCKWISE, i=-0.875, j=0)
 
-        builder.use_tool(tool_1, final_z=1)  # .125 end mill
-        builder.rapid(x=0.875, y=0, z=0.1, comment="return to starting point, just in case")
-        with DrillCycle(
-            builder=builder,
-            f=T1_FEED,
-            z=-0.260,
-            r=0.1,
-        ) as cycle:  # canned drill
-            # First hole is drilled by default
-            cycle.move(x=0, y=-0.875)
-            cycle.move(x=-0.875, y=0)
-            cycle.move(x=0, y=0.875)
+        builder.use_tool(tool_1)  # .125 end mill
+        with builder.compensate(tool=tool_1, start_pos={"z": 1}, end_pos={"z": 1}, direction=None):
+            builder.rapid(x=0.875, y=0, z=0.1, comment="return to starting point, just in case")
+            with DrillCycle(
+                builder=builder,
+                f=T1_FEED,
+                z=-0.260,
+                r=0.1,
+            ) as cycle:  # canned drill
+                # First hole is drilled by default
+                cycle.move(x=0, y=-0.875)
+                cycle.move(x=-0.875, y=0)
+                cycle.move(x=0, y=0.875)
+            builder.rapid(z=1, comment="raise spindle before canceling length comp")
 
         with builder.use_global():
             builder.rapid(z=0)
