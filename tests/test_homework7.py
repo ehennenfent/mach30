@@ -25,8 +25,8 @@ def test_build_homework():
 
         with builder.compensate(
             tool=tool_4,
-            start_pos={"x": -1.0, "y": -1.0, "z": 0.1},
-            end_pos={"x": -2, "y": -1, "z": 0.1},
+            start_pos={"x": -1.0, "y": -1.0},
+            end_pos={"x": -2, "y": -1},
         ):
 
             builder.linear_feed(z=-0.1, feedrate=T4_FEED, comment="plunge to mill outer countour")

@@ -127,17 +127,29 @@ class ProgramBuilder(BaseModel):
         def start_compensation(ctx: "BuilderCtx") -> None:
             assert ctx.builder.current_mode == GGroups.MOTION, "must be in motion mode to use cutter compensation"
             if length is not None:
-                assert "z" in normalized_start.keys(), "must include z start position for tool length compensation"
-                self.add(
-                    GCode(
-                        code_number=length.value,
-                        group=GGroups.TOOL_LENGTH_OFFSET,
-                        sub_codes=[
-                            Code(code_type="H", code_number=int(tool.number)),
-                            Code(code_type="Z", code_number=float(normalized_start["z"])),
-                        ],
+                if "z" in normalized_start.keys():
+                    self.add(
+                        GCode(
+                            code_number=length.value,
+                            group=GGroups.TOOL_LENGTH_OFFSET,
+                            sub_codes=[
+                                Code(code_type="H", code_number=int(tool.number)),
+                                Code(code_type="Z", code_number=float(normalized_start["z"])),
+                            ],
+                        )
                     )
-                )
+                else:
+                    with self.use_global():
+                        self.add(
+                            GCode(
+                                code_number=length.value,
+                                group=GGroups.TOOL_LENGTH_OFFSET,
+                                sub_codes=[
+                                    Code(code_type="H", code_number=int(tool.number)),
+                                    Code(code_type="Z", code_number=0),
+                                ],
+                            )
+                        )
             if direction is not None:
                 startpos_codes = kwargs_to_codes(**{k: v for k, v in normalized_start.items() if k in ("x", "y")})
                 self.add(
@@ -152,10 +164,15 @@ class ProgramBuilder(BaseModel):
                 )
 
         def end_compensation(ctx: "BuilderCtx") -> None:
-            assert ctx.builder.current_mode == GGroups.MOTION, "must be in motion mode to use cutter compensation"
+            assert ctx.builder.current_mode == GGroups.MOTION, "must be in motion mode to exit cutter compensation"
             if length is not None:
-                assert "z" in normalized_end.keys(), "must include z end position for tool length compensation"
-                self.add(CancelToolLengthComp(sub_codes=[Code(code_type="Z", code_number=float(normalized_end["z"]))]))
+                if "z" in normalized_start.keys():
+                    self.add(
+                        CancelToolLengthComp(sub_codes=[Code(code_type="Z", code_number=float(normalized_start["z"]))])
+                    )
+                else:
+                    with self.use_global():
+                        self.add(CancelToolLengthComp(sub_codes=[Code(code_type="Z", code_number=0)]))
             if direction is not None:
                 assert (
                     "x" in normalized_end.keys() and "y" in normalized_end.keys()
@@ -360,3 +377,7 @@ class ProgramBuilder(BaseModel):
         if self._spindle_settings != new_spindle:
             return True
         return False
+
+    def zhome(self, comment: str | None = None) -> None:
+        with self.use_global():
+            self.rapid(z=0, comment=comment)

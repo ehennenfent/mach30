@@ -6,6 +6,8 @@ from mach30.models import SpindleDirection, SpindleSettings, Tool
 T4_FEED = 18.0
 T1_FEED = 7.0
 
+RADIUS = 0.375 + 0.25
+
 
 def test_build_homework():
 
@@ -34,13 +36,13 @@ def test_build_homework():
 
             builder.linear_feed(z=-0.0625, feedrate=T4_FEED, comment="plunge to mill squircle")  # mill squircle
             builder.linear_feed(y=0.5)
-            builder.circular_feed(direction=CircularMotionDirection.COUNTERCLOCKWISE, x=0.5, y=0.875, r=0.375)
+            builder.circular_feed(direction=CircularMotionDirection.COUNTERCLOCKWISE, x=0.5, y=0.875, r=RADIUS)
             builder.linear_feed(x=-0.5)
-            builder.circular_feed(direction=CircularMotionDirection.COUNTERCLOCKWISE, x=-0.875, y=0.5, r=0.375)
+            builder.circular_feed(direction=CircularMotionDirection.COUNTERCLOCKWISE, x=-0.875, y=0.5, r=RADIUS)
             builder.linear_feed(y=-0.5)
-            builder.circular_feed(direction=CircularMotionDirection.COUNTERCLOCKWISE, x=-0.5, y=-0.875, r=0.375)
+            builder.circular_feed(direction=CircularMotionDirection.COUNTERCLOCKWISE, x=-0.5, y=-0.875, r=RADIUS)
             builder.linear_feed(x=0.5)
-            builder.circular_feed(direction=CircularMotionDirection.COUNTERCLOCKWISE, x=0.875, y=-0.5, r=0.375)
+            builder.circular_feed(direction=CircularMotionDirection.COUNTERCLOCKWISE, x=0.875, y=-0.5, r=RADIUS)
             builder.linear_feed(y=0)
 
             builder.linear_feed(z=-0.125, comment="plunge to mill circle")
