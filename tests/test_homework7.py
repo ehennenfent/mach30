@@ -25,17 +25,17 @@ def test_build_homework():
 
         with builder.compensate(
             tool=tool_4,
-            start_pos={"x": -1.0, "y": -1.0},
+            start_pos={"x": -1.0, "y": -1.0, "z": 1},
             end_pos={"x": -2, "y": -1},
         ):
 
             builder.linear_feed(z=-0.1, feedrate=T4_FEED, comment="plunge to mill outer countour")
             builder.linear_feed(x=0.3, comment="move below start of cut")
             builder.linear_feed(y=1.1)
-            builder.linear_feed(x=1.6, y=2.7)
+            builder.linear_feed(x=1.6, y=2.7, comment="C --> D")
             builder.linear_feed(x=2.7)
             builder.linear_feed(y=0.3)
-            builder.linear_feed(x=-1, comment="move past end of cut")
+            builder.linear_feed(x=-0.5, comment="move past end of cut")
 
         with builder.use_global():
             builder.rapid(z=0)

@@ -146,7 +146,7 @@ class ProgramBuilder(BaseModel):
                                 group=GGroups.TOOL_LENGTH_OFFSET,
                                 sub_codes=[
                                     Code(code_type="H", code_number=int(tool.number)),
-                                    Code(code_type="Z", code_number=0),
+                                    Code(code_type="Z", code_number=0.0),
                                 ],
                             )
                         )
@@ -166,13 +166,13 @@ class ProgramBuilder(BaseModel):
         def end_compensation(ctx: "BuilderCtx") -> None:
             assert ctx.builder.current_mode == GGroups.MOTION, "must be in motion mode to exit cutter compensation"
             if length is not None:
-                if "z" in normalized_start.keys():
+                if "z" in normalized_end.keys():
                     self.add(
-                        CancelToolLengthComp(sub_codes=[Code(code_type="Z", code_number=float(normalized_start["z"]))])
+                        CancelToolLengthComp(sub_codes=[Code(code_type="Z", code_number=float(normalized_end["z"]))])
                     )
                 else:
                     with self.use_global():
-                        self.add(CancelToolLengthComp(sub_codes=[Code(code_type="Z", code_number=0)]))
+                        self.add(CancelToolLengthComp(sub_codes=[Code(code_type="Z", code_number=0.0)]))
             if direction is not None:
                 assert (
                     "x" in normalized_end.keys() and "y" in normalized_end.keys()
