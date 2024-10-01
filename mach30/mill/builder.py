@@ -4,7 +4,7 @@ from typing import SupportsFloat as maybe_float
 
 from pydantic import BaseModel
 
-from .enums import (
+from mach30.enums import (
     CircularMotionDirection,
     CutterCompensationDirection,
     GGroups,
@@ -15,6 +15,7 @@ from .enums import (
     Units,
     WorkOffset,
 )
+
 from .gcode_basic import (
     CancelCannedCycle,
     CancelCutterComp,

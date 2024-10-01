@@ -1,7 +1,8 @@
 import typing as t
 from typing import SupportsFloat as maybe_float
 
-from .enums import CutterCompensationDirection, ToolLengthCompensation
+from mach30.enums import CutterCompensationDirection, ToolLengthCompensation
+
 from .gcode_basic import CancelCannedCycle as _CancelCannedCycle
 from .gcode_basic import CancelCutterComp as _CancelCutterComp
 from .gcode_basic import CancelToolLengthComp as _CancelToolLengthComp

@@ -1,7 +1,8 @@
 from pydantic import BaseModel
 
+from mach30.enums import GGroups
+
 from .builder import ProgramBuilder
-from .enums import GGroups
 from .models import Code
 
 

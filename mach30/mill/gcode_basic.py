@@ -1,7 +1,7 @@
 import typing as t
 from typing import SupportsFloat as maybe_float
 
-from .enums import (
+from mach30.enums import (
     CircularMotionDirection,
     CutterCompensationDirection,
     MotionPlane,
@@ -10,6 +10,7 @@ from .enums import (
     Units,
     WorkOffset,
 )
+
 from .models import Code, CodeType, GCode, GGroups
 
 

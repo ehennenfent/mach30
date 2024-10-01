@@ -1,5 +1,5 @@
+from mach30.enums import WorkOffset
 from mach30.mill.builder import ProgramBuilder
-from mach30.mill.enums import WorkOffset
 from mach30.mill.gcode import DrillCycle, SpotDrillCycle
 from mach30.mill.models import SpindleDirection, SpindleSettings, Tool
 

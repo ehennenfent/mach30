@@ -2,7 +2,7 @@ import typing as t
 
 from pydantic import BaseModel
 
-from .enums import GGroups, SpindleDirection
+from mach30.enums import GGroups, SpindleDirection
 
 CodeType = t.Literal["G", "M", "T", "R", "F", "S", "H", "D", "X", "Y", "Z", "A", "B", "C", "P", "I", "J", "K", "Q"]
 
