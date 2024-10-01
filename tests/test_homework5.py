@@ -1,5 +1,5 @@
-# from mach30 import ProgramBuilder
-# from mach30.gcode import (
+# from mach30.mill import ProgramBuilder
+# from mach30.mill.gcode import (
 #     CircularMove,
 #     GCode,
 #     LinearMove,
@@ -7,9 +7,9 @@
 #     SetToolLengthCompensation,
 #     SetWorkOffset,
 # )
-# from mach30.helpers import standard_preamble
-# from mach30.mcode import EndProgram, SpindleOn, ToolChange
-# from mach30.models import (
+# from mach30.mill.helpers import standard_preamble
+# from mach30.mill.mcode import EndProgram, SpindleOn, ToolChange
+# from mach30.mill.models import (
 #     CircularMotionDirection,
 #     Code,
 #     SpindleDirection,

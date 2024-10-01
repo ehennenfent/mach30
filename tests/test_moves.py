@@ -1,4 +1,4 @@
-from mach30.builder import ProgramBuilder
+from mach30.mill.builder import ProgramBuilder
 
 
 def test_rapid():

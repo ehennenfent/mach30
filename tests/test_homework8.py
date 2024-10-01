@@ -1,6 +1,6 @@
-from mach30.builder import ProgramBuilder
-from mach30.enums import CircularMotionDirection, WorkOffset
-from mach30.models import SpindleDirection, SpindleSettings, Tool
+from mach30.mill.builder import ProgramBuilder
+from mach30.mill.enums import CircularMotionDirection, WorkOffset
+from mach30.mill.models import SpindleDirection, SpindleSettings, Tool
 
 T4_FEED = 18.0
 

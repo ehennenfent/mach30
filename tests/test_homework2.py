@@ -1,7 +1,7 @@
-from mach30.builder import ProgramBuilder
-from mach30.enums import WorkOffset
-from mach30.gcode import DrillCycle, SpotDrillCycle
-from mach30.models import SpindleDirection, SpindleSettings, Tool
+from mach30.mill.builder import ProgramBuilder
+from mach30.mill.enums import WorkOffset
+from mach30.mill.gcode import DrillCycle, SpotDrillCycle
+from mach30.mill.models import SpindleDirection, SpindleSettings, Tool
 
 
 def test_build_homework():

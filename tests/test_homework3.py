@@ -1,8 +1,8 @@
-# from mach30 import ProgramBuilder
-# from mach30.gcode import GCode, LinearMove, RapidMove, SetWorkOffset
-# from mach30.helpers import standard_preamble, use_tool
-# from mach30.mcode import EndProgram, SpindleOn
-# from mach30.models import Code, SpindleDirection, WorkOffset
+# from mach30.mill import ProgramBuilder
+# from mach30.mill.gcode import GCode, LinearMove, RapidMove, SetWorkOffset
+# from mach30.mill.helpers import standard_preamble, use_tool
+# from mach30.mill.mcode import EndProgram, SpindleOn
+# from mach30.mill.models import Code, SpindleDirection, WorkOffset
 
 
 # def test_build_homework():
