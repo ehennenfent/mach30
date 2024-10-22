@@ -44,7 +44,7 @@ class Code(BaseModel):
     def render_without_subcodes(self) -> str:
         if isinstance(self.code_number, int):
             return f"{self.code_type}{self.code_number:02}"
-        return f"{self.code_type}{self.code_number}"
+        return f"{self.code_type}{round(self.code_number, 4)}"
 
     def __instancecheck__(self, instance: object) -> bool:
         # TODO - make everything classvars so this will actually work.

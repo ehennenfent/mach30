@@ -2,12 +2,19 @@
 GCode library for using Python as CAM
 
 ### TODO:
-- [ ] Tool offset changes should include a Z move
+merge models for lathe & mill where appropriate
+think more about compensation inital/end moves
+refactor gcode to classvars 
+
+
+
+- [x] Tool offset changes should include a Z move
 - [ ] And maybe we don't need so many G49's?
-- [ ] Figure out what's going on with mode changes
-- [ ] Abstracting away tool changes might make this simpler
-- [ ] Figure out a convenient way to work in G53
-- [ ] warn for failure to change feedrate when changing tools
+- [x] Figure out what's going on with mode changes
+- [x] Abstracting away tool changes might make this simpler
+- [x] Figure out a convenient way to work in G53
+
+
 
 
 * 1 override per group
